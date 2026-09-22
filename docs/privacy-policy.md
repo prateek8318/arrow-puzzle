@@ -1,8 +1,8 @@
 # Privacy Policy — Tap Away Arrows
 
 **Effective date:** 22 September 2026  
-**Publisher:** [PUBLISHER LEGAL NAME]  
-**Contact:** [SUPPORT EMAIL]
+**Publisher:** Prateek Pandey  
+**Contact:** prateekpandey2580@gmail.com
 
 Tap Away Arrows is an offline puzzle game. You can play without creating an account.
 
@@ -20,7 +20,7 @@ The app uses device vibration for optional feedback and audio output for game so
 
 ## Children
 
-The game does not knowingly collect personal information from children. A parent or guardian may contact us at [SUPPORT EMAIL] with a privacy question. The publisher must confirm the intended audience and complete the corresponding Google Play declarations before publication.
+The game does not knowingly collect personal information from children. A parent or guardian may contact us at prateekpandey2580@gmail.com with a privacy question. The publisher must confirm the intended audience and complete the corresponding Google Play declarations before publication.
 
 ## Security and retention
 
@@ -28,6 +28,6 @@ Game progress remains on your device until you reset it, clear app data or unins
 
 ## Changes and contact
 
-If the app gains online features or its data practices change, this policy will be updated before those features are released. For privacy questions, contact [SUPPORT EMAIL].
+If the app gains online features or its data practices change, this policy will be updated before those features are released. For privacy questions, contact prateekpandey2580@gmail.com.
 
 **Before publishing:** replace both placeholders, host this exact text at a public HTTPS URL, and verify it against the final Android App Bundle and any third-party SDKs added later.
