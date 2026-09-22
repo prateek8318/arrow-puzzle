@@ -1,61 +1,40 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
-import LottieView from 'lottie-react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import Video, { ResizeMode } from 'react-native-video';
 import { useUserStore } from '../store/useUserStore';
 
 export const SplashScreen = ({ navigation }: any) => {
-  const hasSeenOnboarding = useUserStore(state => state.hasSeenOnboarding);
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    // Navigate after 2 seconds or when animation finishes
-    const timer = setTimeout(() => {
-      finishSplash();
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const finishSplash = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      if (hasSeenOnboarding) {
-        navigation.replace('Home');
-      } else {
-        navigation.replace('Onboarding');
-      }
+  const opacity = useRef(new Animated.Value(1)).current;
+  const finished = useRef(false);
+  const finish = () => {
+    if (finished.current) return;
+    finished.current = true;
+    Animated.timing(opacity, { toValue: 0, duration: 240, useNativeDriver: true }).start(() => {
+      navigation.replace(useUserStore.getState().hasSeenOnboarding ? 'Home' : 'Onboarding');
     });
   };
-
+  useEffect(() => {
+    const fallback = setTimeout(finish, 12000);
+    return () => clearTimeout(fallback);
+  });
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      {/* 
-        Note: The actual lottie file should be placed at src/assets/animations/splash-logo.json 
-        Using a fallback render if it fails or requires actual JSON.
-      */}
-      <LottieView
-        source={require('../assets/animations/splash-logo.json')}
-        autoPlay
-        loop={false}
-        onAnimationFinish={finishSplash}
-        style={styles.animation}
-      />
+    <Animated.View style={[styles.container, { opacity }]}>
+      <Video source={require('../../splash.mp4')} style={styles.video} resizeMode={ResizeMode.CONTAIN}
+        paused={false} repeat={false} muted onEnd={finish} onError={finish} />
+      <View style={styles.footer}>
+        <Text style={styles.name}>TAP AWAY ARROWS</Text>
+        <Pressable onPress={finish} accessibilityRole="button" accessibilityLabel="Skip intro">
+          <Text style={styles.skip}>SKIP  →</Text>
+        </Pressable>
+      </View>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  animation: {
-    width: 200,
-    height: 200,
-  }
+  container: { flex: 1, backgroundColor: '#090f25' },
+  video: { ...StyleSheet.absoluteFill },
+  footer: { position: 'absolute', bottom: 40, left: 26, right: 26, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  name: { color: '#fff', fontSize: 13, fontWeight: '900', letterSpacing: 2.5 },
+  skip: { color: '#dbeafe', fontSize: 12, fontWeight: '800', letterSpacing: 1.5 },
 });

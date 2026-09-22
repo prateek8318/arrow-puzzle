@@ -6,13 +6,17 @@ import Animated, {
   withTiming,
   withSequence,
   withRepeat,
+  withDelay,
   Easing,
+  useAnimatedProps,
+  interpolateColor,
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 import { Piece } from '../store/useGameStore';
 import { useUserStore } from '../store/useUserStore';
 import { SoundManager } from '../utils/SoundManager';
 import { Haptics } from '../utils/Haptics';
+import { movingSegmentPath, polylineLength } from '../utils/snakePath';
 
 interface ArrowPieceProps {
   piece: Piece;
@@ -20,37 +24,33 @@ interface ArrowPieceProps {
   isHinted: boolean;
   isExiting: boolean;
   failedTap: number;
+  exitDistance: number;
+  entranceDelay: number;
 }
 
 // Direction mapped to rotation in degrees
 const DIRECTIONS = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-export const ArrowPiece: React.FC<ArrowPieceProps> = ({ piece, cellSize, isHinted, isExiting, failedTap }) => {
+const ArrowPieceComponent: React.FC<ArrowPieceProps> = ({ piece, cellSize, isHinted, isExiting, failedTap, exitDistance, entranceDelay }) => {
   const settings = useUserStore(state => state.settings);
   
   // The origin of the piece (its head)
   const head = piece.shape[0];
-  const minX = Math.min(...piece.shape.map(cell => cell.x));
-  const minY = Math.min(...piece.shape.map(cell => cell.y));
-  const maxX = Math.max(...piece.shape.map(cell => cell.x));
-  const maxY = Math.max(...piece.shape.map(cell => cell.y));
-  const margin = cellSize * 0.5;
-  const width = (maxX - minX + 1) * cellSize + margin * 2;
-  const height = (maxY - minY + 1) * cellSize + margin * 2;
-  const center = (cell: { x: number; y: number }) => ({ x: (cell.x - minX + 0.5) * cellSize + margin, y: (cell.y - minY + 0.5) * cellSize + margin });
+  const center = (cell: { x: number; y: number }) => ({ x: (cell.x + 0.5) * cellSize, y: (cell.y + 0.5) * cellSize });
   const tip = center(head);
   const direction = DIRECTIONS[piece.direction];
   const end = { x: tip.x + direction.x * cellSize * 0.35, y: tip.y + direction.y * cellSize * 0.35 };
   const points = [...piece.shape].reverse().map(center);
-  const midpoint = (a: { x: number; y: number }, b: { x: number; y: number }) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
-  let shaft = `M${points[0].x} ${points[0].y}`;
-  for (let index = 1; index < points.length - 1; index++) {
-    const before = midpoint(points[index - 1], points[index]);
-    const after = midpoint(points[index], points[index + 1]);
-    shaft += ` L${before.x} ${before.y} Q${points[index].x} ${points[index].y} ${after.x} ${after.y}`;
-  }
-  if (points.length > 1) shaft += ` L${points[points.length - 1].x} ${points[points.length - 1].y}`;
-  shaft += ` L${end.x} ${end.y}`;
+  const shaftPoints = [...points, end];
+  const pathLength = polylineLength(shaftPoints);
+  const travel = cellSize * exitDistance;
+  const route = [...shaftPoints, { x: end.x + direction.x * travel, y: end.y + direction.y * travel }];
+  const viewportLeft = Math.min(...route.map(point => point.x)) - cellSize * 0.6;
+  const viewportTop = Math.min(...route.map(point => point.y)) - cellSize * 0.6;
+  const viewportWidth = Math.max(...route.map(point => point.x)) - viewportLeft + cellSize * 0.6;
+  const viewportHeight = Math.max(...route.map(point => point.y)) - viewportTop + cellSize * 0.6;
+  const shaft = movingSegmentPath(route, 0, pathLength);
   const side = { x: -direction.y, y: direction.x };
   const wing = (sign: number) => `${end.x - direction.x * cellSize * 0.26 + side.x * cellSize * 0.16 * sign} ${end.y - direction.y * cellSize * 0.26 + side.y * cellSize * 0.16 * sign}`;
   const arrowhead = `M${wing(1)} L${end.x} ${end.y} L${wing(-1)}`;
@@ -59,8 +59,16 @@ export const ArrowPiece: React.FC<ArrowPieceProps> = ({ piece, cellSize, isHinte
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
+  const opacity = useSharedValue(0);
   const glowOpacity = useSharedValue(0);
+  const retract = useSharedValue(pathLength);
+  const flash = useSharedValue(0);
+  const snakeProgress = useSharedValue(0);
+
+  useEffect(() => {
+    opacity.value = withDelay(entranceDelay, withTiming(1, { duration: 280 }));
+    retract.value = withDelay(entranceDelay, withTiming(0, { duration: 360, easing: Easing.out(Easing.cubic) }));
+  }, [entranceDelay, opacity, retract]);
 
   useEffect(() => {
     if (isHinted) {
@@ -81,23 +89,18 @@ export const ArrowPiece: React.FC<ArrowPieceProps> = ({ piece, cellSize, isHinte
     if (isExiting) {
       SoundManager.playWhoosh();
       Haptics.triggerSelection(settings.hapticsEnabled);
-      const FLY_DIST = cellSize * 24;
-      let dx = 0; let dy = 0;
-      if (piece.direction === 0) dy = -FLY_DIST;
-      if (piece.direction === 1) dx = FLY_DIST;
-      if (piece.direction === 2) dy = FLY_DIST;
-      if (piece.direction === 3) dx = -FLY_DIST;
-
-      translateX.value = withTiming(dx, { duration: 480, easing: Easing.inOut(Easing.cubic) });
-      translateY.value = withTiming(dy, { duration: 480, easing: Easing.inOut(Easing.cubic) });
-      opacity.value = withSequence(withTiming(1, { duration: 260 }), withTiming(0, { duration: 220 }));
+      retract.value = 0;
+      opacity.value = 1;
+      snakeProgress.value = withTiming(travel, { duration: 700, easing: Easing.inOut(Easing.cubic) });
+      opacity.value = withDelay(680, withTiming(0, { duration: 100 }));
     }
-  }, [isExiting, cellSize, piece.direction, settings.hapticsEnabled, translateX, translateY, opacity]);
+  }, [isExiting, travel, settings.hapticsEnabled, opacity, retract, snakeProgress]);
 
   useEffect(() => {
     if (failedTap > 0) {
       SoundManager.playError();
       Haptics.triggerError(settings.hapticsEnabled);
+      flash.value = withSequence(withTiming(1, { duration: 75 }), withTiming(0, { duration: 260 }));
       const SHAKE_DIST = 5;
       const originalX = translateX.value;
       const originalY = translateY.value;
@@ -120,7 +123,7 @@ export const ArrowPiece: React.FC<ArrowPieceProps> = ({ piece, cellSize, isHinte
         );
       }
     }
-  }, [failedTap, piece.direction, settings.hapticsEnabled, translateX, translateY]);
+  }, [failedTap, piece.direction, settings.hapticsEnabled, translateX, translateY, flash]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -134,29 +137,40 @@ export const ArrowPiece: React.FC<ArrowPieceProps> = ({ piece, cellSize, isHinte
   const glowStyle = useAnimatedStyle(() => ({
     opacity: glowOpacity.value,
   }));
+  const shaftProps = useAnimatedProps(() => ({
+    d: movingSegmentPath(route, snakeProgress.value, pathLength),
+    strokeDashoffset: retract.value,
+    stroke: interpolateColor(flash.value, [0, 1], ['#1a202c', '#ef4444']),
+  }));
+  const headProps = useAnimatedProps(() => ({
+    d: `M${end.x + direction.x * snakeProgress.value - direction.x * cellSize * 0.26 + side.x * cellSize * 0.16} ${end.y + direction.y * snakeProgress.value - direction.y * cellSize * 0.26 + side.y * cellSize * 0.16} L${end.x + direction.x * snakeProgress.value} ${end.y + direction.y * snakeProgress.value} L${end.x + direction.x * snakeProgress.value - direction.x * cellSize * 0.26 - side.x * cellSize * 0.16} ${end.y + direction.y * snakeProgress.value - direction.y * cellSize * 0.26 - side.y * cellSize * 0.16}`,
+    stroke: interpolateColor(flash.value, [0, 1], ['#1a202c', '#ef4444']),
+  }));
 
   return (
     <Animated.View
       style={[
         styles.container,
         {
-          left: minX * cellSize - margin,
-          top: minY * cellSize - margin,
-          width,
-          height,
+          left: viewportLeft,
+          top: viewportTop,
+          width: viewportWidth,
+          height: viewportHeight,
         },
         animatedStyle,
       ]}
       pointerEvents="box-none"
     >
-      <Animated.View pointerEvents="none" style={[styles.glow, { left: tip.x - cellSize / 2, top: tip.y - cellSize / 2, width: cellSize, height: cellSize }, glowStyle]} />
-      <Svg width={width} height={height} pointerEvents="none">
-        <Path d={shaft} stroke="#1a202c" strokeWidth={Math.max(1, cellSize * 0.07)} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <Path d={arrowhead} stroke="#1a202c" strokeWidth={Math.max(1, cellSize * 0.07)} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <Animated.View pointerEvents="none" style={[styles.glow, { left: tip.x - viewportLeft - cellSize / 2, top: tip.y - viewportTop - cellSize / 2, width: cellSize, height: cellSize }, glowStyle]} />
+      <Svg width={viewportWidth} height={viewportHeight} viewBox={`${viewportLeft} ${viewportTop} ${viewportWidth} ${viewportHeight}`} pointerEvents="none">
+        <AnimatedPath d={shaft} animatedProps={shaftProps} strokeDasharray={`${pathLength} ${pathLength}`} strokeWidth={Math.max(1.25, cellSize * 0.09)} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <AnimatedPath d={arrowhead} animatedProps={headProps} strokeWidth={Math.max(1.25, cellSize * 0.09)} strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </Svg>
     </Animated.View>
   );
 };
+
+export const ArrowPiece = React.memo(ArrowPieceComponent);
 
 const styles = StyleSheet.create({
   container: {

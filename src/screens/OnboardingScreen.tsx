@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
 import { PrimaryButton } from '../components/UI/PrimaryButton';
 import { useUserStore } from '../store/useUserStore';
 import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated';
+import LottieView from 'lottie-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -10,12 +11,12 @@ const SLIDES = [
   {
     id: 1,
     title: 'Tap Away Arrows',
-    description: 'Tap an arrow to clear it from the board. It will fly in the direction it points.',
+    description: 'Tap an arrow and watch it follow its winding line before it slips away.',
   },
   {
     id: 2,
     title: 'Find the Free Path',
-    description: 'An arrow can only be removed if its path is completely unblocked by other pieces.',
+    description: 'An arrow can leave only when the route ahead of its tip is clear.',
   },
   {
     id: 3,
@@ -52,9 +53,15 @@ export const OnboardingScreen = ({ navigation }: any) => {
           exiting={FadeOutLeft}
           style={styles.slide}
         >
-          {/* Placeholder for animation/image */}
           <View style={styles.imagePlaceholder}>
-            <Text style={styles.imageText}>[Animation {slide.id}]</Text>
+            <View style={styles.orbit} />
+            <LottieView source={require('../assets/animations/onboarding-cdn.json')}
+              autoPlay loop style={styles.cdnAccent} />
+            <LottieView
+              source={require('../assets/animations/arrow.json')}
+              autoPlay loop style={styles.lottie}
+            />
+            <Text style={styles.slideNumber}>0{slide.id} / 03</Text>
           </View>
           
           <Text style={styles.title}>{slide.title}</Text>
@@ -75,13 +82,6 @@ export const OnboardingScreen = ({ navigation }: any) => {
           title={currentIndex === SLIDES.length - 1 ? "Let's Play" : "Next"} 
           onPress={handleNext}
         />
-        <PrimaryButton 
-          title="Skip" 
-          type="secondary"
-          onPress={handleComplete}
-          style={styles.skipButton}
-          textStyle={styles.skipText}
-        />
       </View>
     </SafeAreaView>
   );
@@ -90,7 +90,7 @@ export const OnboardingScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f6f8ff',
   },
   content: {
     flex: 1,
@@ -103,18 +103,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   imagePlaceholder: {
-    width: 200,
-    height: 200,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 100,
+    width: width - 64,
+    height: 250,
+    backgroundColor: '#101b3c',
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 48,
   },
-  imageText: {
-    color: '#94a3b8',
-    fontWeight: 'bold',
-  },
+  orbit: { position: 'absolute', width: 190, height: 190, borderRadius: 95, borderWidth: 1, borderColor: '#34466d' },
+  cdnAccent: { position: 'absolute', top: 15, width: '90%', height: 38, opacity: 0.35 },
+  lottie: { width: 200, height: 175 },
+  slideNumber: { position: 'absolute', bottom: 22, color: '#8da8ee', fontWeight: '900', letterSpacing: 2 },
   title: {
     fontSize: 32,
     fontWeight: '900',

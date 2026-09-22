@@ -31,8 +31,9 @@ local.properties
 *.iml
 *.hprof
 .cxx/
-*.keystore
-!debug.keystore
+# Keystores are kept in the repo for safekeeping as per user request
+!*.keystore
+!*.jks
 .kotlin/
 
 # node.js

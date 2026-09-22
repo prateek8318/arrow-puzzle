@@ -19,6 +19,8 @@ export interface LevelData {
   id: string;
   difficultyTier: string;
   boardSize: number;
+  shapeTemplate: string;
+  mask: string[];
   pieces: Piece[];
   optimalSequenceLength: number;
 }
@@ -81,7 +83,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!piece || !state.levelData) return false;
 
     // Check if path is clear
-    const clear = isPathClear(piece, state.remainingPieces, state.levelData.boardSize);
+    const clear = isPathClear(piece, state.remainingPieces, state.levelData.mask);
     
     if (clear) {
       // Remove piece
@@ -108,7 +110,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!state.levelData || state.isLevelComplete || state.isLevelFailed) return null;
 
     // Find the first free piece
-    const freePiece = state.remainingPieces.find(p => isPathClear(p, state.remainingPieces, state.levelData!.boardSize));
+    const freePiece = state.remainingPieces.find(p => isPathClear(p, state.remainingPieces, state.levelData!.mask));
     
     if (freePiece) {
       set({ hintsUsed: state.hintsUsed + 1 });

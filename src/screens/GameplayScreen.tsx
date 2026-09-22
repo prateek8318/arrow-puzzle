@@ -27,15 +27,25 @@ export const GameplayScreen = ({ navigation, route }: any) => {
 
   const [pauseVisible, setPauseVisible] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
+  const [showFailed, setShowFailed] = useState(false);
 
   useEffect(() => {
     if (!isLevelComplete) {
       setShowComplete(false);
       return;
     }
-    const timer = setTimeout(() => setShowComplete(true), 520);
+    const timer = setTimeout(() => setShowComplete(true), 850);
     return () => clearTimeout(timer);
   }, [isLevelComplete]);
+
+  useEffect(() => {
+    if (!isLevelFailed) {
+      setShowFailed(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowFailed(true), 400);
+    return () => clearTimeout(timer);
+  }, [isLevelFailed]);
 
   useEffect(() => {
     loadLevel(levelId);
@@ -95,6 +105,11 @@ export const GameplayScreen = ({ navigation, route }: any) => {
         </View>
       </View>
 
+      <View style={styles.levelHeading}>
+        <Text style={styles.levelEyebrow}>PATH PUZZLE  /  {levelData?.difficultyTier?.toUpperCase() || 'EASY'}</Text>
+        <Text style={styles.levelTitle}>Level {levelId}</Text>
+        <Text style={styles.levelSubtitle}>Follow the line. Find the free arrow.</Text>
+      </View>
       <View style={styles.boardContainer}>
         <GameBoard />
       </View>
@@ -110,7 +125,7 @@ export const GameplayScreen = ({ navigation, route }: any) => {
         onHome={handleHome}
       />
       <LevelFailModal
-        visible={isLevelFailed}
+        visible={showFailed}
         onRetry={handleReplay}
         onHome={handleHome}
       />
@@ -127,7 +142,7 @@ export const GameplayScreen = ({ navigation, route }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fafafa',
+    backgroundColor: '#f6f8ff',
   },
   header: {
     flexDirection: 'row',
@@ -169,5 +184,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
+  levelHeading: { alignItems: 'center', paddingTop: 10 },
+  levelEyebrow: { color: '#6c7dab', fontSize: 10, fontWeight: '900', letterSpacing: 1.6 },
+  levelTitle: { color: '#142148', fontSize: 30, fontWeight: '900', marginTop: 5 },
+  levelSubtitle: { color: '#8390aa', fontSize: 12, marginTop: 3 },
 });
