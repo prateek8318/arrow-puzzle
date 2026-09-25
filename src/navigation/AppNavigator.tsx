@@ -8,6 +8,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { GameplayScreen } from '../screens/GameplayScreen';
 import { LevelSelectScreen } from '../screens/LevelSelectScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { LegalScreen } from '../screens/LegalScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,6 +28,7 @@ export const AppNavigator = () => {
         <Stack.Screen name="Gameplay" component={GameplayScreen} />
         <Stack.Screen name="LevelSelect" component={LevelSelectScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Legal" component={LegalScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

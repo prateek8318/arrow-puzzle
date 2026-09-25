@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Switch, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useUserStore } from '../store/useUserStore';
@@ -52,7 +52,7 @@ export const SettingsScreen = ({ navigation }: any) => {
         <View style={{ width: 44 }} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.section}>
           <SettingRow 
             label="Sound Effects" 
@@ -86,7 +86,16 @@ export const SettingsScreen = ({ navigation }: any) => {
             onPress={handleReset} 
           />
         </View>
-      </View>
+        <View style={styles.section}>
+          <Pressable accessibilityRole="button" style={styles.row} onPress={() => navigation.navigate('Legal', { document: 'privacy-policy' })}>
+            <Text style={styles.label}>Privacy Policy</Text>
+          </Pressable>
+          <View style={styles.divider} />
+          <Pressable accessibilityRole="button" style={styles.row} onPress={() => navigation.navigate('Legal', { document: 'terms-of-use' })}>
+            <Text style={styles.label}>Terms of Use</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

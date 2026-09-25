@@ -1,8 +1,10 @@
 # Terms of Use — Tap Away Arrows
 
-**Effective date:** 22 September 2026  
+**Effective date:** 25 September 2026
 **Publisher:** Prateek Pandey  
 **Contact:** prateekpandey2580@gmail.com
+
+**Android package:** `com.arrowpuzzle.tapawayarrows`
 
 By installing or using Tap Away Arrows, you agree to these terms. If you do not agree, do not use the app.
 
@@ -29,5 +31,3 @@ The app is provided as available, to the extent permitted by applicable law. Not
 ## Changes and contact
 
 The publisher may update these terms. Updated terms will be posted with a new effective date. Questions may be sent to prateekpandey2580@gmail.com.
-
-**Before publishing:** replace placeholders, confirm asset rights and obtain local legal review where required.

@@ -84,7 +84,7 @@ android {
 
     namespace "com.arrowpuzzle"
     defaultConfig {
-        applicationId "com.arrowpuzzle"
+        applicationId "com.arrowpuzzle.tapawayarrows"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
