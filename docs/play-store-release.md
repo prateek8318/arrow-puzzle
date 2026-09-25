@@ -28,20 +28,23 @@ The intended age groups still need the publisher's confirmation. Do not assume a
 | Content rating | Complete the IARC questionnaire truthfully; use its assigned rating |
 | Store listing | Add descriptions from `play-store-assets.md`, a 512×512 icon, 1024×500 feature graphic and real phone screenshots |
 | Countries and pricing | Choose distribution countries and pricing in Console |
-| Testing | Upload to internal testing first and check gameplay, audio, saved progress, reset, and both legal screens on a device |
+| Closed testing | Create or manage a closed track, add tester email list(s), roll out the release, and share the opt-in link |
+| Testing | Check gameplay, audio, saved progress, reset, and both legal screens on a device; collect and address tester feedback |
 | Production access | Complete any testing and verification requirements shown for your developer account before applying for production |
 
 Play Console review, public policy hosting, audience selection, store artwork uploads and account declarations are not completed by building an AAB.
 
 ## Signing and bundle
 
-The release package ID is `com.arrowpuzzle.tapawayarrows`. Rebuild the release AAB after changing this ID before uploading to Play Console.
+The release package ID is `com.arrowpuzzle.tapawayarrows`. This closed-testing build uses `versionCode` 2 because the previously generated local AAB used 1; keep `versionName` at `1.0`. If Play Console already has a higher version code, increment this value above it before building.
 
 1. Generate and securely back up a unique Android upload keystore with `keytool -genkeypair -v -keystore arrow-upload.jks -alias arrow-upload -keyalg RSA -keysize 4096 -validity 10000`. Choose private passwords when prompted; keep the keystore and passwords outside Git.
 2. Configure `ARROW_UPLOAD_STORE_FILE`, `ARROW_UPLOAD_STORE_PASSWORD`, `ARROW_UPLOAD_KEY_ALIAS` and `ARROW_UPLOAD_KEY_PASSWORD` in your private Gradle properties or CI secrets. For example, the store file may use an absolute path to your backed-up `.jks` file.
-3. Build `android/gradlew.bat bundleRelease`, then inspect the signed bundle and upload `android/app/build/outputs/bundle/release/app-release.aab` to Play Console. For a local standalone test APK, run `android/gradlew.bat assemblePreview`; its package ID ends in `.preview`.
+3. Build `android/gradlew.bat bundleRelease`, then inspect the signed bundle and upload `android/app/build/outputs/bundle/release/app-release.aab` to **Testing > Closed testing**. For a local standalone test APK, run `android/gradlew.bat assemblePreview`; its package ID ends in `.preview`.
 4. Enrol in Play App Signing and keep the upload key backed up. Increment `versionCode` for each update. Confirm the final package ID before the first release; it cannot be casually changed afterward.
 
 The project targets Android API 36 and currently packages 64-bit ARM Android devices. The app is offline, has no ads or accounts, and stores progress locally. Verify the final merged manifest and any SDK changes before answering the Data safety form. A privacy policy and app-content declarations still need to be entered in Play Console.
+
+For new personal developer accounts created after 13 November 2023, Google requires at least 12 testers to remain opted in to the closed test continuously for 14 days before applying for production access. This does not prevent creating the closed test itself; check the Play Console dashboard for any account-specific setup requirements. See https://support.google.com/googleplay/android-developer/answer/14151465.
 
 Official references: https://support.google.com/googleplay/android-developer/answer/11926878 (target API), https://support.google.com/googleplay/android-developer/answer/9842756 (Play App Signing), https://support.google.com/googleplay/android-developer/answer/9859455 (privacy policy and app content), https://support.google.com/googleplay/android-developer/answer/10787469 (Data safety).
